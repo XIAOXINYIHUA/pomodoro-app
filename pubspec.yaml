@@ -1,0 +1,52 @@
+name: pomodoro_app
+description: "番茄时钟 + 运动健康 App"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  # 状态管理
+  provider: ^6.1.0
+  # 本地数据库
+  sqflite: ^2.3.0
+  path: ^1.8.0
+  # 云后端
+  supabase_flutter: ^2.5.0
+  # 本地通知
+  flutter_local_notifications: ^17.0.0
+  # 本地存储（用户偏好）
+  shared_preferences: ^2.2.0
+  # 图表
+  fl_chart: ^0.68.0
+  # 网络检测
+  connectivity_plus: ^6.0.0
+  # UUID 生成
+  uuid: ^4.4.0
+  # 国际化
+  intl: ^0.19.0
+  # 日期格式化
+  timeago: ^3.6.0
+  # 健康数据读取（Apple HealthKit + Google Health Connect）
+  health: ^13.0.0
+  # 权限管理
+  permission_handler: ^11.0.0
+  # 路径
+  path_provider: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  mockito: ^5.4.0
+  build_runner: ^2.4.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/sounds/
+    - assets/images/
