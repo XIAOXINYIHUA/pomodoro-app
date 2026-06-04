@@ -5,13 +5,16 @@ import '../../core/utils/date_utils.dart';
 import '../../providers/stat_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/workout_plan_provider.dart';
+import '../../providers/workout_log_provider.dart';
 import '../../providers/focus_plan_provider.dart';
+import '../../providers/todo_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../focus_plans/focus_plan_card.dart';
 import '../focus_plans/focus_plan_form_dialog.dart';
 import '../fitness/widgets/workout_plan_card.dart';
 import '../fitness/widgets/workout_form_dialog.dart';
 import 'widgets/stat_card_grid.dart';
+import 'widgets/todo_section.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,16 +23,45 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
+  String? _lastLoadedDate;
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      context.read<StatProvider>().loadTodayStats();
-      context.read<TaskProvider>().loadTasks();
-      context.read<WorkoutPlanProvider>().loadPlans();
-      context.read<FocusPlanProvider>().loadPlans();
-    });
+    WidgetsBinding.instance.addObserver(this);
+    Future.microtask(() => _loadAllData());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // App 从后台恢复时检查日期是否变化
+    if (state == AppLifecycleState.resumed) {
+      _checkDateChange();
+    }
+  }
+
+  void _checkDateChange() {
+    final today = AppDateUtils.formatDate(DateTime.now());
+    if (_lastLoadedDate != null && _lastLoadedDate != today) {
+      _loadAllData();
+    }
+  }
+
+  Future<void> _loadAllData() async {
+    _lastLoadedDate = AppDateUtils.formatDate(DateTime.now());
+    await context.read<TaskProvider>().loadTasks();
+    await context.read<WorkoutPlanProvider>().loadPlans();
+    await context.read<WorkoutLogProvider>().loadTodayLogs();
+    await context.read<FocusPlanProvider>().loadPlans();
+    await context.read<TodoProvider>().loadTodos();
+    await context.read<StatProvider>().loadTodayStats();
   }
 
   @override
@@ -45,12 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          await context.read<StatProvider>().loadTodayStats();
-          await context.read<TaskProvider>().loadTasks();
-          await context.read<WorkoutPlanProvider>().loadPlans();
-          await context.read<FocusPlanProvider>().loadPlans();
-        },
+        onRefresh: _loadAllData,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
@@ -68,6 +95,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // 2x2 概览卡片
               const StatCardGrid(),
+              const SizedBox(height: 16),
+
+              // 待办事项
+              const TodoSection(),
               const SizedBox(height: 24),
 
               // 快捷操作（含加号）

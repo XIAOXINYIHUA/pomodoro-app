@@ -3,12 +3,16 @@ import '../core/utils/date_utils.dart';
 import '../data/local/dao/stat_dao.dart';
 import '../data/local/dao/pomodoro_dao.dart';
 import '../data/local/dao/task_dao.dart';
+import '../data/local/dao/workout_plan_dao.dart';
+import '../data/local/dao/workout_log_dao.dart';
 import '../data/models/daily_stat.dart';
 
 class StatProvider extends ChangeNotifier {
   final StatDao _statDao = StatDao();
   final PomodoroDao _pomodoroDao = PomodoroDao();
   final TaskDao _taskDao = TaskDao();
+  final WorkoutPlanDao _workoutPlanDao = WorkoutPlanDao();
+  final WorkoutLogDao _workoutLogDao = WorkoutLogDao();
 
   DailyStat? _todayStat;
   List<DailyStat> _weekStats = [];
@@ -35,10 +39,16 @@ class StatProvider extends ChangeNotifier {
     final focusSeconds = await _pomodoroDao.getTotalFocusSecondsByDate(DateTime.now());
     final completedTasks = await _taskDao.getCompletedCountByDate(DateTime.now());
 
+    // 运动计划和完成数
+    final allPlans = await _workoutPlanDao.getAll();
+    final completedWorkouts = await _workoutLogDao.getCompletedCountByDate(DateTime.now());
+
     _todayStat = _todayStat!.copyWith(
       totalPomodoros: pomodoroCount,
       totalFocusSeconds: focusSeconds,
       completedTasks: completedTasks,
+      plannedWorkouts: allPlans.length,
+      completedWorkouts: completedWorkouts,
       updatedAt: DateTime.now(),
     );
 
@@ -51,10 +61,26 @@ class StatProvider extends ChangeNotifier {
     final startOfWeek = AppDateUtils.getStartOfWeek(now);
     final endOfWeek = AppDateUtils.getEndOfWeek(now);
 
-    _weekStats = await _statDao.getByDateRange(
+    final dbStats = await _statDao.getByDateRange(
       AppDateUtils.formatDate(startOfWeek),
       AppDateUtils.formatDate(endOfWeek),
     );
+
+    // 按日期建立索引
+    final Map<String, DailyStat> statMap = {
+      for (var s in dbStats) s.date: s,
+    };
+
+    // 填满7天，缺失的用零值补上
+    _weekStats = List.generate(7, (i) {
+      final date = startOfWeek.add(Duration(days: i));
+      final dateStr = AppDateUtils.formatDate(date);
+      return statMap[dateStr] ?? DailyStat(
+        date: dateStr,
+        updatedAt: date,
+      );
+    });
+
     notifyListeners();
   }
 

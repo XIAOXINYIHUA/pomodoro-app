@@ -10,6 +10,7 @@ import 'providers/workout_plan_provider.dart';
 import 'providers/workout_log_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/focus_plan_provider.dart';
+import 'providers/todo_provider.dart';
 
 void main() async {
   // 捕获所有未处理的异常
@@ -37,6 +38,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => WorkoutPlanProvider()),
           ChangeNotifierProvider(create: (_) => WorkoutLogProvider()),
           ChangeNotifierProvider(create: (_) => FocusPlanProvider()),
+          ChangeNotifierProvider(create: (_) => TodoProvider()),
         ],
         child: const PomodoroApp(),
       ),
