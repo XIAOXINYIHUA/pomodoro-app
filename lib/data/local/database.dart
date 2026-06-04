@@ -16,8 +16,9 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -104,5 +105,47 @@ class AppDatabase {
         created_at TEXT NOT NULL
       )
     ''');
+
+    // 专注计划表
+    await db.execute('''
+      CREATE TABLE focus_plans (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        work_duration INTEGER NOT NULL DEFAULT 25,
+        break_duration INTEGER NOT NULL DEFAULT 5,
+        long_break_duration INTEGER NOT NULL DEFAULT 15,
+        long_break_interval INTEGER NOT NULL DEFAULT 4,
+        target_pomodoros INTEGER,
+        frequency TEXT NOT NULL DEFAULT 'daily',
+        reminder_enabled INTEGER NOT NULL DEFAULT 0,
+        notes TEXT,
+        is_synced INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // v1 → v2: 新增专注计划表
+      await db.execute('''
+        CREATE TABLE focus_plans (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          work_duration INTEGER NOT NULL DEFAULT 25,
+          break_duration INTEGER NOT NULL DEFAULT 5,
+          long_break_duration INTEGER NOT NULL DEFAULT 15,
+          long_break_interval INTEGER NOT NULL DEFAULT 4,
+          target_pomodoros INTEGER,
+          frequency TEXT NOT NULL DEFAULT 'daily',
+          reminder_enabled INTEGER NOT NULL DEFAULT 0,
+          notes TEXT,
+          is_synced INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+    }
   }
 }
