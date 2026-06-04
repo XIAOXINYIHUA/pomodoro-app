@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../providers/stat_provider.dart';
 import 'widgets/daily_overview_card.dart';
 import 'widgets/weekly_chart.dart';
+import 'widgets/workout_weekly_chart.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -65,7 +66,7 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
         children: [
           const DailyOverviewCard(),
           const SizedBox(height: 24),
-          Text('本周趋势', style: Theme.of(context).textTheme.titleMedium),
+          Text('本周专注趋势（分钟）', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16),
           const WeeklyChart(),
         ],
@@ -80,6 +81,10 @@ class _StatsScreenState extends State<StatsScreen> with SingleTickerProviderStat
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildWorkoutOverview(context),
+          const SizedBox(height: 24),
+          Text('本周运动趋势', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 16),
+          const WorkoutWeeklyChart(),
           const SizedBox(height: 24),
           Text('运动完成率', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 16),

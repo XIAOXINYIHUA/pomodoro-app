@@ -21,6 +21,21 @@ class HealthProvider extends ChangeNotifier {
   bool get isAuthorized => _isAuthorized;
   bool get isLoading => _isLoading;
 
+  void setSteps(int steps) {
+    _steps = steps;
+    notifyListeners();
+  }
+
+  void setCalories(double calories) {
+    _calories = calories;
+    notifyListeners();
+  }
+
+  void setWorkoutMinutes(int minutes) {
+    _workoutMinutes = minutes;
+    notifyListeners();
+  }
+
   Future<bool> requestAuthorization() async {
     final types = [
       HealthDataType.STEPS,

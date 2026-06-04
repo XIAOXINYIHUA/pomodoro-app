@@ -297,12 +297,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       builder: (context, taskProvider, _) {
         final tasks = taskProvider.allTasks.where((t) => t.status != 'done').take(3).toList();
         if (tasks.isEmpty) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('暂无待办任务'),
-            ),
-          );
+          return const SizedBox.shrink();
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
