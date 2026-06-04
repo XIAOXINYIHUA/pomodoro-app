@@ -44,6 +44,14 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   mockito: ^5.4.0
   build_runner: ^2.4.0
+  flutter_launcher_icons: ^0.14.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/tomato_icon.png"
+  adaptive_icon_background: "#FF6347"
+  adaptive_icon_foreground: "assets/images/tomato_icon.png"
 
 flutter:
   uses-material-design: true
