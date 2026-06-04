@@ -20,6 +20,7 @@ class TimerProvider extends ChangeNotifier {
   String? _currentSessionId;
   DateTime? _sessionStartTime;
   String? _selectedTaskId;
+  String? _currentPlanName;
 
   Timer? _timer;
 
@@ -29,6 +30,7 @@ class TimerProvider extends ChangeNotifier {
   double get progress => totalSeconds > 0 ? 1 - (_remainingSeconds / totalSeconds) : 0;
   int get completedPomodoros => _completedPomodoros;
   String? get selectedTaskId => _selectedTaskId;
+  String? get currentPlanName => _currentPlanName;
 
   String get timeDisplay {
     final minutes = (_remainingSeconds ~/ 60).toString().padLeft(2, '0');
@@ -69,6 +71,7 @@ class TimerProvider extends ChangeNotifier {
 
   /// 从专注计划加载配置（不自动开始）
   void loadPlanConfig(FocusPlan plan) {
+    _currentPlanName = plan.title;
     _workDuration = plan.workDuration * 60;
     _breakDuration = plan.breakDuration * 60;
     _longBreakDuration = plan.longBreakDuration * 60;
@@ -110,6 +113,7 @@ class TimerProvider extends ChangeNotifier {
     _remainingSeconds = _workDuration;
     _currentSessionId = null;
     _sessionStartTime = null;
+    _currentPlanName = null;
     notifyListeners();
   }
 

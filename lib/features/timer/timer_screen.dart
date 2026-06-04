@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/timer_provider.dart';
 import '../../providers/task_provider.dart';
-import '../../core/constants/app_constants.dart';
+import '../../providers/focus_plan_provider.dart';
 import 'widgets/circular_timer.dart';
 import 'widgets/timer_controls.dart';
 import 'widgets/task_selector_sheet.dart';
@@ -21,6 +21,7 @@ class _TimerScreenState extends State<TimerScreen> {
     super.initState();
     Future.microtask(() {
       context.read<TaskProvider>().loadTasks();
+      context.read<FocusPlanProvider>().loadPlans();
     });
   }
 
@@ -66,6 +67,11 @@ class _TimerScreenState extends State<TimerScreen> {
 
                 const SizedBox(height: 32),
 
+                // 专注计划选择
+                _buildPlanSelector(context, timer),
+
+                const SizedBox(height: 12),
+
                 // 任务选择
                 _buildTaskSelector(context, timer),
 
@@ -101,6 +107,58 @@ class _TimerScreenState extends State<TimerScreen> {
           style: TextStyle(color: AppColors.textSecondaryLight),
         ),
       ],
+    );
+  }
+
+  Widget _buildPlanSelector(BuildContext context, TimerProvider timer) {
+    return Consumer<FocusPlanProvider>(
+      builder: (context, planProvider, _) {
+        final plans = planProvider.plans;
+        if (plans.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: OutlinedButton.icon(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (ctx) => SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('选择专注计划', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                      ...plans.map((plan) => ListTile(
+                        leading: const Icon(Icons.timer, color: AppColors.tomatoRed),
+                        title: Text(plan.title),
+                        subtitle: Text('${plan.workDuration}分钟专注 · ${plan.breakDuration}分钟休息'),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          timer.loadPlanConfig(plan);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('已加载计划「${plan.title}」')),
+                          );
+                        },
+                      )),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.playlist_play),
+            label: Text(
+              timer.currentPlanName ?? '选择专注计划（可选）',
+              overflow: TextOverflow.ellipsis,
+            ),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+            ),
+          ),
+        );
+      },
     );
   }
 
