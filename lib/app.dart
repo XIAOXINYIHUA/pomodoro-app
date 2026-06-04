@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'providers/settings_provider.dart';
+import 'providers/navigation_provider.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/timer/timer_screen.dart';
 import 'features/fitness/fitness_screen.dart';
@@ -32,17 +33,10 @@ class PomodoroApp extends StatelessWidget {
   }
 }
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
-  @override
-  State<MainScreen> createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
+  static const List<Widget> _screens = [
     DashboardScreen(),
     TimerScreen(),
     FitnessScreen(),
@@ -52,22 +46,26 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
-          BottomNavigationBarItem(icon: Icon(Icons.timer), label: '专注'),
-          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: '运动'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '统计'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '设置'),
-        ],
-      ),
+    return Consumer<NavigationProvider>(
+      builder: (context, nav, _) {
+        return Scaffold(
+          body: IndexedStack(
+            index: nav.currentIndex,
+            children: _screens,
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: nav.currentIndex,
+            onTap: (index) => nav.changeTab(index),
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: '首页'),
+              BottomNavigationBarItem(icon: Icon(Icons.timer), label: '专注'),
+              BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: '运动'),
+              BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '统计'),
+              BottomNavigationBarItem(icon: Icon(Icons.settings), label: '设置'),
+            ],
+          ),
+        );
+      },
     );
   }
 }

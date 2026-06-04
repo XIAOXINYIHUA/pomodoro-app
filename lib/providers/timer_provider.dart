@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../core/constants/app_constants.dart';
 import '../data/local/dao/pomodoro_dao.dart';
 import '../data/models/pomodoro_session.dart';
+import '../data/models/focus_plan.dart';
 
 class TimerProvider extends ChangeNotifier {
   final PomodoroDao _dao = PomodoroDao();
@@ -63,6 +64,18 @@ class TimerProvider extends ChangeNotifier {
 
   void setLongBreakDuration(int minutes) {
     _longBreakDuration = minutes * 60;
+    notifyListeners();
+  }
+
+  /// 从专注计划加载配置（不自动开始）
+  void loadPlanConfig(FocusPlan plan) {
+    _workDuration = plan.workDuration * 60;
+    _breakDuration = plan.breakDuration * 60;
+    _longBreakDuration = plan.longBreakDuration * 60;
+    _longBreakInterval = plan.longBreakInterval;
+    if (_state == TimerState.idle) {
+      _remainingSeconds = _workDuration;
+    }
     notifyListeners();
   }
 

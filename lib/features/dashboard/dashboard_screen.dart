@@ -5,7 +5,12 @@ import '../../core/utils/date_utils.dart';
 import '../../providers/stat_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/workout_plan_provider.dart';
-import '../../providers/timer_provider.dart';
+import '../../providers/focus_plan_provider.dart';
+import '../../providers/navigation_provider.dart';
+import '../focus_plans/focus_plan_card.dart';
+import '../focus_plans/focus_plan_form_dialog.dart';
+import '../fitness/widgets/workout_plan_card.dart';
+import '../fitness/widgets/workout_form_dialog.dart';
 import 'widgets/stat_card_grid.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -23,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context.read<StatProvider>().loadTodayStats();
       context.read<TaskProvider>().loadTasks();
       context.read<WorkoutPlanProvider>().loadPlans();
+      context.read<FocusPlanProvider>().loadPlans();
     });
   }
 
@@ -42,6 +48,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onRefresh: () async {
           await context.read<StatProvider>().loadTodayStats();
           await context.read<TaskProvider>().loadTasks();
+          await context.read<WorkoutPlanProvider>().loadPlans();
+          await context.read<FocusPlanProvider>().loadPlans();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -62,8 +70,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const StatCardGrid(),
               const SizedBox(height: 24),
 
-              // 快捷操作
+              // 快捷操作（含加号）
               _buildQuickActions(context),
+              const SizedBox(height: 24),
+
+              // 专注计划列表
+              _buildFocusPlans(context),
+              const SizedBox(height: 24),
+
+              // 运动计划列表
+              _buildWorkoutPlans(context),
               const SizedBox(height: 24),
 
               // 今日任务概览
@@ -81,7 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () {
-              // 跳转到专注Tab
+              context.read<NavigationProvider>().changeTab(1);
             },
             icon: const Icon(Icons.timer),
             label: const Text('开始专注'),
@@ -92,11 +108,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 48,
+          height: 48,
+          child: FloatingActionButton(
+            onPressed: () => _showAddPlanSheet(context),
+            backgroundColor: AppColors.warmOrange,
+            mini: true,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ),
+        const SizedBox(width: 8),
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () {
-              // 跳转到运动Tab
+              context.read<NavigationProvider>().changeTab(2);
             },
             icon: const Icon(Icons.fitness_center),
             label: const Text('开始运动'),
@@ -111,6 +138,129 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showAddPlanSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.timer, color: AppColors.tomatoRed),
+              title: const Text('新建专注计划'),
+              subtitle: const Text('创建番茄钟专注计划'),
+              onTap: () {
+                Navigator.pop(ctx);
+                showDialog(
+                  context: context,
+                  builder: (_) => const FocusPlanFormDialog(),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.fitness_center, color: AppColors.fitnessGreen),
+              title: const Text('新建运动计划'),
+              subtitle: const Text('创建运动锻炼计划'),
+              onTap: () {
+                Navigator.pop(ctx);
+                showDialog(
+                  context: context,
+                  builder: (_) => const WorkoutFormDialog(),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFocusPlans(BuildContext context) {
+    return Consumer<FocusPlanProvider>(
+      builder: (context, planProvider, _) {
+        final plans = planProvider.plans.take(3).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('专注计划', style: Theme.of(context).textTheme.titleMedium),
+                if (planProvider.plans.length > 3)
+                  TextButton(
+                    onPressed: () {
+                      // 可以后续跳转到完整列表页
+                    },
+                    child: const Text('查看全部'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (plans.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppColors.tomatoRed.withOpacity(0.5)),
+                      const SizedBox(width: 8),
+                      const Text('暂无专注计划，点击 + 创建'),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...plans.map((plan) => FocusPlanCard(plan: plan)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildWorkoutPlans(BuildContext context) {
+    return Consumer<WorkoutPlanProvider>(
+      builder: (context, planProvider, _) {
+        final plans = planProvider.plans.take(3).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('运动计划', style: Theme.of(context).textTheme.titleMedium),
+                if (planProvider.plans.length > 3)
+                  TextButton(
+                    onPressed: () {
+                      context.read<NavigationProvider>().changeTab(2);
+                    },
+                    child: const Text('查看全部'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (plans.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppColors.fitnessGreen.withOpacity(0.5)),
+                      const SizedBox(width: 8),
+                      const Text('暂无运动计划，点击 + 创建'),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ...plans.map((plan) => WorkoutPlanCard(plan: plan)),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildTodayTasks(BuildContext context) {
     return Consumer<TaskProvider>(
       builder: (context, taskProvider, _) {
@@ -119,7 +269,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return const Card(
             child: Padding(
               padding: EdgeInsets.all(16),
-              child: Text('暂无待办任务，点击右下角添加'),
+              child: Text('暂无待办任务'),
             ),
           );
         }
