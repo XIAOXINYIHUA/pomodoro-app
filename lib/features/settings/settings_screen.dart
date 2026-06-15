@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import '../../core/l10n/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/settings_provider.dart';
 import 'widgets/settings_section_tile.dart';
+import 'privacy_policy_screen.dart';
+import 'data_export_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -10,7 +15,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
+      appBar: AppBar(title: Text(AppStrings.navSettings)),
       body: Consumer<SettingsProvider>(
         builder: (context, settings, _) {
           return ListView(
@@ -23,6 +28,8 @@ class SettingsScreen extends StatelessWidget {
               const Divider(),
               _buildThemeSection(context, settings),
               const Divider(),
+              _buildLanguageSection(context, settings),
+              const Divider(),
               _buildAboutSection(context),
             ],
           );
@@ -33,38 +40,38 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildPomodoroSection(BuildContext context, SettingsProvider settings) {
     return SettingsSectionTile(
-      title: '番茄钟设置',
+      title: AppStrings.settingsPomodoro,
       icon: Icons.timer,
       children: [
         ListTile(
-          title: const Text('工作时长'),
-          subtitle: Text('${settings.workDuration} 分钟'),
+          title: Text(AppStrings.settingsWorkDuration),
+          subtitle: Text(AppStrings.durationSubtitle(settings.workDuration)),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showDurationPicker(context, '工作时长', settings.workDuration, (value) {
+          onTap: () => _showDurationPicker(context, AppStrings.settingsWorkDuration, settings.workDuration, (value) {
             settings.setWorkDuration(value);
           }),
         ),
         ListTile(
-          title: const Text('休息时长'),
-          subtitle: Text('${settings.breakDuration} 分钟'),
+          title: Text(AppStrings.settingsBreakDuration),
+          subtitle: Text(AppStrings.durationSubtitle(settings.breakDuration)),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showDurationPicker(context, '休息时长', settings.breakDuration, (value) {
+          onTap: () => _showDurationPicker(context, AppStrings.settingsBreakDuration, settings.breakDuration, (value) {
             settings.setBreakDuration(value);
           }),
         ),
         ListTile(
-          title: const Text('长休息时长'),
-          subtitle: Text('${settings.longBreakDuration} 分钟'),
+          title: Text(AppStrings.settingsLongBreakDuration),
+          subtitle: Text(AppStrings.durationSubtitle(settings.longBreakDuration)),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showDurationPicker(context, '长休息时长', settings.longBreakDuration, (value) {
+          onTap: () => _showDurationPicker(context, AppStrings.settingsLongBreakDuration, settings.longBreakDuration, (value) {
             settings.setLongBreakDuration(value);
           }),
         ),
         ListTile(
-          title: const Text('长休息间隔'),
-          subtitle: Text('每 ${settings.longBreakInterval} 个番茄'),
+          title: Text(AppStrings.settingsLongBreakInterval),
+          subtitle: Text(AppStrings.intervalSubtitle(settings.longBreakInterval)),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showDurationPicker(context, '长休息间隔', settings.longBreakInterval, (value) {
+          onTap: () => _showDurationPicker(context, AppStrings.settingsLongBreakInterval, settings.longBreakInterval, (value) {
             settings.setLongBreakInterval(value);
           }),
         ),
@@ -74,30 +81,30 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildWorkoutSection(BuildContext context, SettingsProvider settings) {
     return SettingsSectionTile(
-      title: '运动目标',
+      title: AppStrings.settingsWorkoutGoal,
       icon: Icons.fitness_center,
       children: [
         ListTile(
-          title: const Text('每日步数目标'),
-          subtitle: Text('${settings.stepGoal} 步'),
+          title: Text(AppStrings.settingsStepGoal),
+          subtitle: Text('${settings.stepGoal} ${AppStrings.stepsUnit}'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showNumberPicker(context, '每日步数目标', settings.stepGoal, (value) {
+          onTap: () => _showNumberPicker(context, AppStrings.settingsStepGoal, settings.stepGoal, (value) {
             settings.setStepGoal(value);
           }),
         ),
         ListTile(
-          title: const Text('每日卡路里目标'),
+          title: Text(AppStrings.settingsCalorieGoal),
           subtitle: Text('${settings.calorieGoal} kcal'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showNumberPicker(context, '每日卡路里目标', settings.calorieGoal, (value) {
+          onTap: () => _showNumberPicker(context, AppStrings.settingsCalorieGoal, settings.calorieGoal, (value) {
             settings.setCalorieGoal(value);
           }),
         ),
         ListTile(
-          title: const Text('每日运动时长目标'),
-          subtitle: Text('${settings.workoutMinutesGoal} 分钟'),
+          title: Text(AppStrings.settingsWorkoutMinGoal),
+          subtitle: Text(AppStrings.durationSubtitle(settings.workoutMinutesGoal)),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showNumberPicker(context, '每日运动时长目标', settings.workoutMinutesGoal, (value) {
+          onTap: () => _showNumberPicker(context, AppStrings.settingsWorkoutMinGoal, settings.workoutMinutesGoal, (value) {
             settings.setWorkoutMinutesGoal(value);
           }),
         ),
@@ -107,12 +114,12 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildNotificationSection(BuildContext context, SettingsProvider settings) {
     return SettingsSectionTile(
-      title: '通知设置',
+      title: AppStrings.settingsNotification,
       icon: Icons.notifications,
       children: [
         SwitchListTile(
-          title: const Text('启用通知'),
-          subtitle: const Text('番茄结束、运动提醒等'),
+          title: Text(AppStrings.enableNotifications),
+          subtitle: Text(AppStrings.notificationDesc),
           value: settings.notificationsEnabled,
           onChanged: (value) => settings.setNotificationsEnabled(value),
           activeColor: AppColors.tomatoRed,
@@ -123,11 +130,11 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildThemeSection(BuildContext context, SettingsProvider settings) {
     return SettingsSectionTile(
-      title: '主题设置',
+      title: AppStrings.settingsTheme,
       icon: Icons.palette,
       children: [
         ListTile(
-          title: const Text('主题模式'),
+          title: Text(AppStrings.themeMode),
           subtitle: Text(_getThemeModeName(settings.themeMode)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _showThemeModePicker(context, settings),
@@ -136,24 +143,70 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLanguageSection(BuildContext context, SettingsProvider settings) {
+    return SettingsSectionTile(
+      title: AppStrings.settingsLanguage,
+      icon: Icons.language,
+      children: [
+        ListTile(
+          title: Text(AppStrings.language),
+          subtitle: Text(settings.languageCode == 'zh' ? AppStrings.languageZh : AppStrings.languageEn),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showLanguagePicker(context, settings),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAboutSection(BuildContext context) {
     return SettingsSectionTile(
-      title: '关于',
+      title: AppStrings.settingsAbout,
       icon: Icons.info,
       children: [
-        const ListTile(
-          title: Text('版本'),
-          subtitle: Text('1.0.0'),
+        FutureBuilder<PackageInfo>(
+          future: PackageInfo.fromPlatform(),
+          builder: (context, snapshot) {
+            final info = snapshot.data;
+            return ListTile(
+              title: Text(AppStrings.version),
+              subtitle: Text(info != null ? '${info.version}+${info.buildNumber}' : '...'),
+            );
+          },
         ),
         ListTile(
-          title: const Text('隐私政策'),
+          title: Text(AppStrings.privacyPolicy),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+            );
+          },
         ),
         ListTile(
-          title: const Text('意见反馈'),
+          leading: const Icon(Icons.download, color: AppColors.tomatoRed),
+          title: Text(AppStrings.isZh ? '数据导出' : 'Export Data'),
+          subtitle: Text(AppStrings.isZh ? '导出任务和统计为CSV文件' : 'Export tasks and stats as CSV'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DataExportScreen()),
+            );
+          },
+        ),
+        ListTile(
+          title: Text(AppStrings.feedback),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            Clipboard.setData(const ClipboardData(text: '1722609793@qq.com'));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppStrings.feedbackCopied),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -161,9 +214,9 @@ class SettingsScreen extends StatelessWidget {
 
   String _getThemeModeName(String mode) {
     switch (mode) {
-      case 'light': return '浅色';
-      case 'dark': return '深色';
-      default: return '跟随系统';
+      case 'light': return AppStrings.themeLight;
+      case 'dark': return AppStrings.themeDark;
+      default: return AppStrings.themeSystem;
     }
   }
 
@@ -199,13 +252,13 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(AppStrings.cancel)),
             ElevatedButton(
               onPressed: () {
                 onChanged(selectedValue);
                 Navigator.pop(context);
               },
-              child: const Text('确定'),
+              child: Text(AppStrings.confirm),
             ),
           ],
         );
@@ -223,10 +276,10 @@ class SettingsScreen extends StatelessWidget {
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: '数值'),
+            decoration: InputDecoration(labelText: AppStrings.numberPickerLabel),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(AppStrings.cancel)),
             ElevatedButton(
               onPressed: () {
                 final value = int.tryParse(controller.text);
@@ -235,7 +288,7 @@ class SettingsScreen extends StatelessWidget {
                 }
                 Navigator.pop(context);
               },
-              child: const Text('确定'),
+              child: Text(AppStrings.confirm),
             ),
           ],
         );
@@ -248,12 +301,12 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('主题模式'),
+          title: Text(AppStrings.themeMode),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<String>(
-                title: const Text('跟随系统'),
+                title: Text(AppStrings.themeSystem),
                 value: 'system',
                 groupValue: settings.themeMode,
                 onChanged: (value) {
@@ -262,7 +315,7 @@ class SettingsScreen extends StatelessWidget {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('浅色'),
+                title: Text(AppStrings.themeLight),
                 value: 'light',
                 groupValue: settings.themeMode,
                 onChanged: (value) {
@@ -271,7 +324,7 @@ class SettingsScreen extends StatelessWidget {
                 },
               ),
               RadioListTile<String>(
-                title: const Text('深色'),
+                title: Text(AppStrings.themeDark),
                 value: 'dark',
                 groupValue: settings.themeMode,
                 onChanged: (value) {
@@ -281,6 +334,78 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(AppStrings.language),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: Text(AppStrings.languageZh),
+                subtitle: const Text('中文'),
+                value: 'zh',
+                groupValue: settings.languageCode,
+                onChanged: (value) {
+                  if (value == settings.languageCode) {
+                    Navigator.pop(context);
+                    return;
+                  }
+                  settings.setLanguageCode(value!);
+                  Navigator.pop(context);
+                  _showRestartDialog(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: Text(AppStrings.languageEn),
+                subtitle: const Text('English'),
+                value: 'en',
+                groupValue: settings.languageCode,
+                onChanged: (value) {
+                  if (value == settings.languageCode) {
+                    Navigator.pop(context);
+                    return;
+                  }
+                  settings.setLanguageCode(value!);
+                  Navigator.pop(context);
+                  _showRestartDialog(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showRestartDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(AppStrings.restartRequired),
+          content: Text(AppStrings.restartDesc),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(AppStrings.restartLater),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                SystemNavigator.pop();
+              },
+              child: Text(AppStrings.restartNow),
+            ),
+          ],
         );
       },
     );
